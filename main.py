@@ -1,5 +1,6 @@
 import tkinter as tk
 import random
+import os
 
 countries=[]
 score=0
@@ -10,7 +11,7 @@ current_question=None
 mode_choice='mix up'
 current_mode='mix up'
 image_cache={}
-resource_base='.'
+resource_base=os.path.dirname(os.path.abspath(__file__))
 
 FACT_FILES={
 'United States':'facts/US.txt',
@@ -85,12 +86,9 @@ MODE_GROUPS={
 def resolve_resource(path):
     if not path:
         return ''
-    if path.startswith(('/', '\\')) or (len(path)>1 and path[1]==':'):
+    if os.path.isabs(path):
         return path
-    base=resource_base.rstrip('/\\')
-    if base in ('', '.'):
-        return path
-    return base+'/'+path
+    return os.path.join(resource_base,path)
 
 
 def read_fact(path):
@@ -364,16 +362,13 @@ def build_window():
     tk.Button(result_screen,text='Play Again',command=go_home).pack(pady=8)
 
     def set_mode_and_start():
-        global mode_choice,resource_base
+        global mode_choice
         entry_text=mode_entry.get().strip().lower()
         if entry_text in MODE_GROUPS:
             mode_choice=entry_text
         else:
             mode_choice='mix up'
         platform_choice=platform_var.get()
-        base_dir='.'
-        platform_specific=base_dir+'/'+platform_choice
-        resource_base=platform_specific
         start_game()
 
     tk.Button(start_screen,text='Start',width=20,command=set_mode_and_start).pack(pady=12)

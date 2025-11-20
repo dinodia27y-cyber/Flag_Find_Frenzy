@@ -8,6 +8,7 @@ question_index=0
 total_questions=10
 current_question=None
 mode_choice='mix up'
+current_mode='mix up'
 image_cache={}
 
 FACT_FILES={
@@ -133,7 +134,12 @@ def handle_answer(answer):
         return
     text='Correct answer: '+current_question['country']
     fact=current_question['fact']
-    if answer==current_question['country']:
+    if answer:
+        guess=str(answer).strip().lower()
+    else:
+        guess=''
+    actual=current_question['country'].lower()
+    if guess and guess==actual:
         update_score()
         message='Nice job!\n\n'+text+'\n\n'+fact
     else:
@@ -161,11 +167,12 @@ def finish_game():
 
 
 def start_game():
-    global score,question_index,current_question,question_queue,mode_choice
+    global score,question_index,current_question,question_queue,mode_choice,current_mode
     if mode_choice in MODE_GROUPS:
         choice=mode_choice
     else:
         choice='mix up'
+    current_mode=choice
     load_data(choice)
     score=0
     question_index=0
@@ -214,29 +221,44 @@ def ask_question():
         return
     current_question=question_queue[question_index]
     question_label.config(text='Question '+str(question_index+1)+'/'+str(total))
-    choices=[current_question['country']]
-    remaining=[]
-    i=0
-    while i<len(countries):
-        entry=countries[i]
-        if entry['country']!=current_question['country']:
-            remaining.append(entry['country'])
-        i+=1
-    random.shuffle(remaining)
-    while len(choices)<4 and remaining:
-        choices.append(remaining.pop())
-    while len(choices)<4:
-        choices.append('')
-    random.shuffle(choices)
-    i=0
-    while i<len(option_buttons) and i<len(choices):
-        btn=option_buttons[i]
-        name=choices[i]
-        if name=='':
-            btn.config(text='',state='disabled')
-        else:
-            btn.config(text=name,state='normal',command=lambda value=name:handle_answer(value))
-        i+=1
+    if current_mode in ('advanced','expert'):
+        i=0
+        while i<len(option_buttons):
+            option_buttons[i].pack_forget()
+            i+=1
+        answer_entry.delete(0,tk.END)
+        answer_entry.pack(pady=5)
+        submit_button.pack(pady=5)
+    else:
+        answer_entry.pack_forget()
+        submit_button.pack_forget()
+        i=0
+        while i<len(option_buttons):
+            option_buttons[i].pack(pady=5)
+            i+=1
+        choices=[current_question['country']]
+        remaining=[]
+        i=0
+        while i<len(countries):
+            entry=countries[i]
+            if entry['country']!=current_question['country']:
+                remaining.append(entry['country'])
+            i+=1
+        random.shuffle(remaining)
+        while len(choices)<4 and remaining:
+            choices.append(remaining.pop())
+        while len(choices)<4:
+            choices.append('')
+        random.shuffle(choices)
+        i=0
+        while i<len(option_buttons) and i<len(choices):
+            btn=option_buttons[i]
+            name=choices[i]
+            if name=='':
+                btn.config(text='',state='disabled',command=lambda: None)
+            else:
+                btn.config(text=name,state='normal',command=lambda value=name:handle_answer(value))
+            i+=1
     show_flag_picture(current_question['country'])
 
 
@@ -245,11 +267,16 @@ def ask_question():
 def go_home():
     show_screen(start_screen)
 
+def submit_typing():
+    text=answer_entry.get().strip()
+    answer_entry.delete(0,tk.END)
+    handle_answer(text)
 
 
 def build_window():
     global window,start_screen,quiz_screen,fact_screen,result_screen
     global question_label,picture_label,option_buttons,score_label,fact_message,result_label
+    global answer_entry,submit_button
     window=tk.Tk()
     window.title('Flag-Find Frenzy')
     window.geometry('1000x800')
@@ -293,6 +320,8 @@ def build_window():
         btn.pack(pady=5)
         option_buttons.append(btn)
         i+=1
+    answer_entry=tk.Entry(quiz_screen,width=30)
+    submit_button=tk.Button(quiz_screen,text='Submit',command=submit_typing)
 
     score_label=tk.Label(quiz_screen,text='Score: 0',font=('Arial',14))
     score_label.pack(pady=8)

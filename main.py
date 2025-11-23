@@ -1,6 +1,6 @@
 import tkinter as tk
 import random
-import os
+from pathlib import Path
 
 countries=[]
 score=0
@@ -14,27 +14,23 @@ image_cache={}
 
 
 def find_base_folder():
-    first_try=''
     try:
-        first_try=os.path.dirname(os.path.abspath(__file__))
+        first_try=Path(__file__).resolve().parent
     except Exception:
-        first_try=''
-    spots=[first_try,os.getcwd()]
+        first_try=Path.cwd()
+    spots=[first_try,Path.cwd()]
     good=None
     i=0
     while i<len(spots):
         place=spots[i]
-        data_path=os.path.join(place,'data')
-        fact_path=os.path.join(place,'facts')
-        if place and os.path.exists(data_path) and os.path.exists(fact_path):
+        data_path=place/'data'
+        fact_path=place/'facts'
+        if data_path.exists() and fact_path.exists():
             good=place
             break
         i+=1
     if not good:
-        if first_try:
-            good=first_try
-        else:
-            good=os.getcwd()
+        good=spots[0]
     return good
 
 
@@ -115,12 +111,12 @@ MODE_GROUPS={
 def read_fact(path):
     if not path:
         return ''
-    file_path=os.path.join(resource_base,path)
-    if not os.path.exists(file_path):
+    file_path=resource_base/path
+    if not file_path.exists():
         print('missing fact file at '+str(file_path))
         return ''
     try:
-        with open(file_path,'r') as file:
+        with file_path.open('r') as file:
             data=file.read().strip()
     except Exception:
         data=''
@@ -229,8 +225,8 @@ def show_flag_picture(name):
         picture_label.config(image='',text='[flag image here]')
         picture_label.image=None
         return
-    image_path=os.path.join(resource_base,path)
-    if not os.path.exists(image_path):
+    image_path=resource_base/path
+    if not image_path.exists():
         print('missing flag file at '+str(image_path))
         picture_label.config(image='',text='[flag image missing]')
         picture_label.image=None

@@ -11,7 +11,7 @@ current_question=None
 mode_choice='mix up'
 current_mode='mix up'
 image_cache={}
-resource_base=os.path.dirname(os.path.abspath(__file__))
+resource_base=os.getcwd()
 
 FACT_FILES={
 'United States':'facts/US.txt',
@@ -83,18 +83,10 @@ MODE_GROUPS={
 'expert':EXPERT
 }
 
-def resolve_resource(path):
-    if not path:
-        return ''
-    if os.path.isabs(path):
-        return path
-    return os.path.join(resource_base,path)
-
-
 def read_fact(path):
     if not path:
         return ''
-    file_path=resolve_resource(path)
+    file_path=os.path.join(resource_base,path)
     try:
         with open(file_path,'r') as file:
             data=file.read().strip()
@@ -205,7 +197,7 @@ def show_flag_picture(name):
         picture_label.config(image='',text='[flag image here]')
         picture_label.image=None
         return
-    image_path=resolve_resource(path)
+    image_path=os.path.join(resource_base,path)
     if name not in image_cache:
         try:
             image_cache[name]=tk.PhotoImage(file=str(image_path),master=window)

@@ -1,7 +1,6 @@
 import tkinter as tk
 import random
 import os
-import sys
 
 countries=[]
 score=0
@@ -15,27 +14,25 @@ image_cache={}
 
 
 def find_base_folder():
-    spots=[]
+    first_try=''
     try:
-        spots.append(os.path.dirname(os.path.abspath(__file__)))
+        first_try=os.path.dirname(os.path.abspath(__file__))
     except Exception:
-        pass
-    spots.append(os.getcwd())
-    if hasattr(sys,'_MEIPASS'):
-        spots.append(sys._MEIPASS)
-    if getattr(sys,'executable',None):
-        spots.append(os.path.dirname(sys.executable))
+        first_try=''
+    spots=[first_try,os.getcwd()]
     good=None
     i=0
     while i<len(spots):
         place=spots[i]
-        if place and os.path.exists(os.path.join(place,'data')) and os.path.exists(os.path.join(place,'facts')):
+        data_path=os.path.join(place,'data')
+        fact_path=os.path.join(place,'facts')
+        if place and os.path.exists(data_path) and os.path.exists(fact_path):
             good=place
             break
         i+=1
     if not good:
-        if spots and spots[0]:
-            good=spots[0]
+        if first_try:
+            good=first_try
         else:
             good=os.getcwd()
     return good
